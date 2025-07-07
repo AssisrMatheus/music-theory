@@ -8,21 +8,46 @@ import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { useSearchParams } from "next/navigation";
 import * as tonal from "tonal";
 
-const guitarTunings = [
-  tonal.Note.get("E"),
-  tonal.Note.get("B"),
-  tonal.Note.get("G"),
-  tonal.Note.get("D"),
-  tonal.Note.get("A"),
-  tonal.Note.get("E"),
-];
+const instruments = {
+  guitar: {
+    strings: 6,
+    tuning: [
+      tonal.Note.get("E"),
+      tonal.Note.get("B"),
+      tonal.Note.get("G"),
+      tonal.Note.get("D"),
+      tonal.Note.get("A"),
+      tonal.Note.get("E"),
+    ],
+  },
+  bass: {
+    strings: 4,
+    tuning: [
+      tonal.Note.get("G"),
+      tonal.Note.get("D"),
+      tonal.Note.get("A"),
+      tonal.Note.get("E"),
+    ],
+  },
+  ukulele: {
+    strings: 4,
+    tuning: [
+      tonal.Note.get("A"),
+      tonal.Note.get("E"),
+      tonal.Note.get("C"),
+      tonal.Note.get("G"),
+    ],
+  },
+};
 
 export default function Home() {
   const searchParams = useSearchParams();
-  const { numberOfStrings, numberOfFrets, firstFret, vertical } =
+  const { instrument, numberOfFrets, firstFret, vertical } =
     useFretboardContext();
 
-  const instrumentStrings = guitarTunings.map((note) =>
+  const instrumentObj = instruments[instrument as keyof typeof instruments];
+
+  const instrumentStrings = instrumentObj?.tuning.map((note) =>
     Array.from({
       length: numberOfFrets + firstFret,
     }).reduce<tonal.Core.Note[]>(
@@ -33,6 +58,10 @@ export default function Home() {
       [tonal.Note.get(note.name)]
     )
   );
+
+  if (!instrumentStrings) {
+    return null;
+  }
 
   return (
     <div className="font-sans">
@@ -56,15 +85,9 @@ export default function Home() {
               searchParams.toString()
             );
             const formData = new FormData(e.currentTarget);
-            const numberOfStrings = formData.get("numberOfStrings");
             const numberOfFrets = formData.get("numberOfFrets");
             const firstFret = formData.get("firstFret");
             const vertical = formData.get("vertical") === "on";
-
-            urlSearchParams.set(
-              "numberOfStrings",
-              numberOfStrings ? String(numberOfStrings) : ""
-            );
             urlSearchParams.set(
               "numberOfFrets",
               numberOfFrets ? String(numberOfFrets) : ""
@@ -83,18 +106,6 @@ export default function Home() {
           }}
         >
           <label className="block">
-            <span className="text-lg font-semibold">Number of strings:</span>
-            <input
-              type="number"
-              defaultValue={numberOfStrings ? numberOfStrings : 6}
-              min={1}
-              max={12}
-              className="ml-2 border border-gray-300 rounded px-2 py-1"
-              name="numberOfStrings"
-            />
-          </label>
-
-          <label className="block">
             <span className="text-lg font-semibold">Number of frets:</span>
             <input
               type="number"
@@ -112,7 +123,7 @@ export default function Home() {
               type="number"
               defaultValue={firstFret ? firstFret : 0}
               min={0}
-              max={12}
+              max={23}
               className="ml-2 border border-gray-300 rounded px-2 py-1"
               name="firstFret"
             />
@@ -130,14 +141,15 @@ export default function Home() {
         </form>
         <div id="fretboard-container" className="p-6 pb-8 pt-2 w-fit mx-auto">
           <Fretboard
+            numberOfStrings={instrumentObj.strings}
             renderLeftOfNut={(stringIndex) => (
               <div className="text-sm text-stone-500">
-                {guitarTunings[stringIndex].name}
+                {instrumentStrings[stringIndex][0].name}
               </div>
             )}
             renderFret={(stringIndex, fretIndex) => {
               const note =
-                instrumentStrings[numberOfStrings - stringIndex - 1][
+                instrumentStrings[instrumentObj.strings - stringIndex - 1][
                   fretIndex + 1
                 ];
 

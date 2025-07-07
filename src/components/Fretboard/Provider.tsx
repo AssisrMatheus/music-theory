@@ -9,7 +9,7 @@ type FretboardContext = {
    */
   hasProvider: boolean;
 
-  numberOfStrings: number;
+  instrument: string;
   numberOfFrets: number;
   firstFret: number;
   vertical: boolean;
@@ -17,7 +17,7 @@ type FretboardContext = {
 
 const initialState: FretboardContext = {
   hasProvider: false,
-  numberOfStrings: 6,
+  instrument: "guitar",
   numberOfFrets: 13,
   firstFret: 0,
   vertical: false,
@@ -30,10 +30,7 @@ const FretboardProvider: React.FC<
 > = ({ children }) => {
   const searchParams = useSearchParams();
 
-  const numberOfStrings = parseInt(
-    searchParams.get("numberOfStrings") || "6",
-    10
-  );
+  const instrument = searchParams.get("instrument") || "guitar";
   const numberOfFrets = parseInt(searchParams.get("numberOfFrets") || "13", 10);
   const firstFret = parseInt(searchParams.get("firstFret") || "0", 10);
   const vertical = searchParams.get("vertical") === "true";
@@ -42,7 +39,7 @@ const FretboardProvider: React.FC<
     <FretboardContext.Provider
       value={{
         hasProvider: true,
-        numberOfStrings,
+        instrument,
         numberOfFrets,
         firstFret,
         vertical,

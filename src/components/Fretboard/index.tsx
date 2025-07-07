@@ -6,26 +6,78 @@ import React from "react";
 import { useFretboardContext } from "./Provider";
 
 export type FretboardProps = {
+  numberOfStrings: number;
   renderLeftOfNut?: (stringIndex: number) => React.ReactNode;
   renderRightOfBoard?: (stringIndex: number) => React.ReactNode;
   renderFret?: (stringIndex: number, fretIndex: number) => React.ReactNode;
 };
 
+const instrumentStyles = {
+  guitar: {
+    fretColor: "#BDAC9D", // #D5C8B1
+    maskSize: "100%",
+  },
+  bass: {
+    fretColor: "#988179",
+    maskSize: "150%",
+  },
+  ukulele: {
+    fretColor: "#D5C8B1",
+    maskSize: "150%",
+  },
+};
+
 const Fretboard: React.FC<FretboardProps> = ({
+  numberOfStrings,
   renderLeftOfNut,
   renderFret,
   renderRightOfBoard,
 }) => {
-  const { numberOfStrings, numberOfFrets, firstFret, vertical } =
+  const { instrument, numberOfFrets, firstFret, vertical } =
     useFretboardContext();
   const contentRef = React.useRef<HTMLDivElement>(null);
+
+  const instrumentStyle =
+    instrumentStyles[instrument as keyof typeof instrumentStyles] ||
+    instrumentStyles.guitar;
+
+  const hasMarker = (stringIndex: number, fretIndex: number) => {
+    // Bass
+    if (numberOfStrings === 4 && instrument === "bass") {
+      return (
+        (Math.floor(numberOfStrings / stringIndex) === 2 &&
+          [2, 4, 6, 8, 14, 16, 18, 20].includes(fretIndex + firstFret)) ||
+        ([1, 3].includes(stringIndex) && [11].includes(fretIndex + firstFret))
+      );
+    }
+
+    // Ukulele
+    if (numberOfStrings === 4 && instrument === "ukulele") {
+      return (
+        (Math.floor(numberOfStrings / stringIndex) === 2 &&
+          [4, 6, 9, 14, 16, 18, 20].includes(fretIndex + firstFret)) ||
+        ([1, 3].includes(stringIndex) && [11].includes(fretIndex + firstFret))
+      );
+    }
+
+    // Guitar
+    if (numberOfStrings === 6) {
+      return (
+        (Math.floor(numberOfStrings / stringIndex) === 2 &&
+          [2, 4, 6, 8, 14, 16, 18, 20].includes(fretIndex + firstFret)) ||
+        ([2, 4].includes(stringIndex) && [11].includes(fretIndex + firstFret))
+      );
+    }
+
+    return false;
+  };
 
   return (
     <div
       id="fretboard"
       style={
         {
-          "--fretboard-fret-color": "#BDAC9D", // #D5C8B1
+          "--fretboard-fret-color": instrumentStyle.fretColor,
           "--fretboard-string-color": "#585553", // #575452
           "--fretboard-string-thickness": "0.06rem",
           "--fret-size": "45px",
@@ -60,7 +112,7 @@ const Fretboard: React.FC<FretboardProps> = ({
             {/* Curved mask for the last fret - applies to entire column */}
             <div
               className={cn(
-                "absolute top-0 bottom-0 left-full z-[0] bg-[var(--fretboard-fret-color)] w-4 transform translate-x-[-1.15rem] flex items-center justify-center",
+                "absolute top-0 bottom-0 left-full z-[0] bg-[var(--fretboard-fret-color)] w-4 transform translate-x-[-1.8rem] flex items-center justify-center",
                 styles.fretboardLeftOfNutHorizontal
               )}
               style={
@@ -68,7 +120,7 @@ const Fretboard: React.FC<FretboardProps> = ({
                   WebkitMaskImage: `url(data:image/svg+xml,%3Csvg%20width%3D%2296%22%20height%3D%22409%22%20viewBox%3D%220%200%2096%20409%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M64.6485%200H0.923828L2.71889%20409H64.6485C83.7958%20375%20114.013%20292.5%2081.7016%20234.5C41.3127%20162%2042.2102%20135%2039.5176%20102C37.3636%2075.6%2055.374%2023%2064.6485%200Z%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E)`,
                   maskImage: `url(data:image/svg+xml,%3Csvg%20width%3D%2296%22%20height%3D%22409%22%20viewBox%3D%220%200%2096%20409%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M64.6485%200H0.923828L2.71889%20409H64.6485C83.7958%20375%20114.013%20292.5%2081.7016%20234.5C41.3127%20162%2042.2102%20135%2039.5176%20102C37.3636%2075.6%2055.374%2023%2064.6485%200Z%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E)`,
                   maskRepeat: "repeat-y",
-                  maskSize: "62%",
+                  maskSize: instrumentStyle.maskSize,
                   width: "70px",
                 } as React.CSSProperties
               }
@@ -127,12 +179,7 @@ const Fretboard: React.FC<FretboardProps> = ({
                     ></div>
 
                     {/* Fret Marker */}
-                    {((Math.floor(numberOfStrings / stringIndex) === 2 &&
-                      [2, 4, 6, 8, 14, 16, 18, 20].includes(
-                        fretIndex + firstFret
-                      )) ||
-                      ([2, 4].includes(stringIndex) &&
-                        [11].includes(fretIndex + firstFret))) && (
+                    {hasMarker(stringIndex, fretIndex) && (
                       <div className="absolute -top-1.5 h-3 w-3 z-[1] rounded-full bg-white"></div>
                     )}
 
@@ -222,7 +269,7 @@ const Fretboard: React.FC<FretboardProps> = ({
             {/* Curved mask for the last fret - applies to entire column */}
             <div
               className={cn(
-                "absolute left-0 right-0 top-full z-[0] bg-[var(--fretboard-fret-color)] h-4 transform translate-y-[-1.15rem] flex items-center justify-center",
+                "absolute left-0 right-0 top-full z-[0] bg-[var(--fretboard-fret-color)] h-4 transform translate-y-[-1.8rem] flex items-center justify-center",
                 styles.fretboardLeftOfNutVertical
               )}
               style={
@@ -230,7 +277,7 @@ const Fretboard: React.FC<FretboardProps> = ({
                   WebkitMaskImage: `url(data:image/svg+xml,%3Csvg%20width%3D%22409%22%20height%3D%2295%22%20viewBox%3D%220%200%20409%2095%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M409%2063.7247L409%200L-7.84646e-08%201.79504L-2.78549e-06%2063.7246C34%2082.872%20116.5%20113.089%20174.5%2080.7777C247%2040.3889%20274%2041.2864%20307%2038.5938C333.4%2036.4397%20386%2054.4502%20409%2063.7247Z%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E)`,
                   maskImage: `url(data:image/svg+xml,%3Csvg%20width%3D%22409%22%20height%3D%2295%22%20viewBox%3D%220%200%20409%2095%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M409%2063.7247L409%200L-7.84646e-08%201.79504L-2.78549e-06%2063.7246C34%2082.872%20116.5%20113.089%20174.5%2080.7777C247%2040.3889%20274%2041.2864%20307%2038.5938C333.4%2036.4397%20386%2054.4502%20409%2063.7247Z%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E)`,
                   maskRepeat: "repeat-x",
-                  maskSize: "62%",
+                  maskSize: instrumentStyle.maskSize,
                   height: "70px",
                 } as React.CSSProperties
               }
@@ -293,12 +340,7 @@ const Fretboard: React.FC<FretboardProps> = ({
                       ></div>
 
                       {/* Fret Marker */}
-                      {((Math.floor(numberOfStrings / stringIndex) === 2 &&
-                        [2, 4, 6, 8, 14, 16, 18, 20].includes(
-                          fretIndex + firstFret
-                        )) ||
-                        ([2, 4].includes(stringIndex) &&
-                          [11].includes(fretIndex + firstFret))) && (
+                      {hasMarker(stringIndex, fretIndex) && (
                         <div className="absolute -left-1.5 h-3 w-3 z-[1] rounded-full bg-white"></div>
                       )}
 
