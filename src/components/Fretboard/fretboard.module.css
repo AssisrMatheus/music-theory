@@ -1,0 +1,38 @@
+.fretboardGridHorizontal {
+  display: grid;
+  grid-template-columns: repeat(var(--number-of-frets, 13), var(--fret-size, 1fr));
+  grid-template-rows: repeat(var(--number-of-strings, 6), var(--fret-size, var(--fret-height, 1fr)));
+}
+
+.fretboardLeftOfNutHorizontal {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(var(--number-of-strings, 6), var(--fret-size, 1fr));
+}
+
+.fretboardUnderHorizontal {
+  display: grid;
+  grid-template-columns: repeat(var(--number-of-frets, 6), var(--fret-size, 1fr));
+  grid-template-rows: 1fr;
+}
+
+.fretboardFretHorizontal {
+  height: var(--fret-height, 2rem);
+}
+
+.fretboardGridVertical {
+  display: grid;
+  grid-template-columns: repeat(var(--number-of-strings, 6), var(--fret-size, var(--fret-height, 1fr)));
+  grid-template-rows: repeat(var(--number-of-frets, 13), var(--fret-size, 1fr));
+}
+
+.fretboardLeftOfNutVertical {
+  display: grid;
+  grid-template-columns: repeat(var(--number-of-strings, 6), var(--fret-size, 1fr));
+  grid-template-rows: 1fr;
+}
+.fretboardUnderVertical {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(var(--number-of-frets, 6), var(--fret-size, 1fr));
+}

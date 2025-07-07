@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: Helvetica, var(--font-inter-sans), Arial;
+  --font-sans-secondary: var(--font-poppins), Arial;
+
+  --color-low-black: #10101B;
+}
+
